@@ -1,18 +1,25 @@
 import { createComparison, defaultRules } from "../lib/compare.js";
 
-// @todo: #4.3 — настроить компаратор
 const compare = createComparison(defaultRules);
 
 export function initFiltering(elements, indexes) {
-  // @todo: #4.1 — заполнить выпадающие списки опциями
-  Object.keys(indexes).forEach((elementName) => {
-    elements[elementName].innerHTML = Object.values(indexes[elementName]).map(
-      (name) => `<option value="${name}">${name}</option>`
+  // Заполняем select
+  Object.keys(indexes).forEach((name) => {
+    elements[name].innerHTML = Object.values(indexes[name]).map(
+      (n) => `<option value="${n}">${n}</option>`
     );
   });
 
-  return (data, state, action) => {
-    // @todo: #4.2 — обработать очистку поля
+  const updateIndexes = (elements, indexes) => {
+    Object.keys(indexes).forEach((name) => {
+      elements[name].innerHTML = Object.values(indexes[name]).map(
+        (n) => `<option value="${n}">${n}</option>`
+      );
+    });
+  };
+
+  const applyFiltering = (query, state, action) => {
+    // Обработка очистки
     if (action && action.name === "clear") {
       const parent = action.target.closest("button");
       const fieldName = parent.dataset.field;
@@ -20,8 +27,15 @@ export function initFiltering(elements, indexes) {
         elements[fieldName].value = "";
       }
     }
-    // @todo: #4.5 — отфильтровать данные используя компаратор
 
-    return data.filter((row) => compare(row, state));
+    const filter = {};
+    Object.keys(elements).forEach((key) => {
+      if (elements[key] && elements[key].value) {
+        filter[`filter[${key}]`] = elements[key].value;
+      }
+    });
+    return Object.keys(filter).length ? { ...query, ...filter } : query;
   };
+
+  return { updateIndexes, applyFiltering };
 }
