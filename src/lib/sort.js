@@ -9,9 +9,13 @@
  * что позволяет переиспользовать логику сортировки с разными полями.
  */
 const sortUp = (field) => (a, b) => {
-  if (a[field] > b[field]) return 1;
-  if (a[field] < b[field]) return -1;
-  return 0;
+  if (a[field] > b[field]) {
+    return 1; // Значение в a больше, чем в b, перемещаем a вправо
+  }
+  if (a[field] < b[field]) {
+    return -1; // Значение в a меньше, чем в b, перемещаем a влево
+  }
+  return 0; // Значения равны, сохраняем текущий порядок
 };
 
 /**
@@ -25,9 +29,13 @@ const sortUp = (field) => (a, b) => {
  * Логика инвертирована по сравнению с сортировкой по возрастанию.
  */
 const sortDown = (field) => (a, b) => {
-  if (a[field] < b[field]) return 1;
-  if (a[field] > b[field]) return -1;
-  return 0;
+  if (a[field] < b[field]) {
+    return 1; // Значение в a меньше, чем в b, перемещаем a вправо
+  }
+  if (a[field] > b[field]) {
+    return -1; // Значение в a больше, чем в b, перемещаем a влево
+  }
+  return 0; // Значения равны, сохраняем текущий порядок
 };
 
 /**
@@ -38,8 +46,8 @@ const sortDown = (field) => (a, b) => {
  * сортировки в пользовательском интерфейсе.
  */
 const sortFn = {
-  up: sortUp,
-  down: sortDown,
+  up: sortUp, // Сортировка по возрастанию
+  down: sortDown, // Сортировка по убыванию
 };
 
 /**
@@ -51,9 +59,9 @@ const sortFn = {
  * по убыванию -> отсутствие сортировки и т.д.
  */
 export const sortMap = {
-  none: "up",
-  up: "down",
-  down: "none",
+  none: "up", // Из "без сортировки" переходим в "по возрастанию"
+  up: "down", // Из "по возрастанию" переходим в "по убыванию"
+  down: "none", // Из "по убыванию" переходим в "без сортировки"
 };
 
 /**
@@ -74,8 +82,7 @@ export const sortMap = {
  * Это оптимизирует работу, предотвращая ненужные операции.
  */
 export function sortCollection(arr, field, order) {
-  if (field && order !== "none" && sortFn[order]) {
+  if (field && order !== "none" && sortMap[order])
     return arr.toSorted(sortFn[order](field));
-  }
-  return arr;
+  else return arr; // Возвращаем исходный массив без изменений, если сортировка не нужна
 }

@@ -1,12 +1,13 @@
 const BASE_URL = "https://webinars.webdev.education-services.ru/sp7-api";
 
 export function initData(sourceData) {
-  // переменные для кеширования данных
+  // кешируем данные
   let sellers;
   let customers;
   let lastResult;
   let lastQuery;
 
+  // функция для преобразования записей
   const mapRecords = (data) =>
     data.map((item) => ({
       id: item.receipt_id,
@@ -16,6 +17,7 @@ export function initData(sourceData) {
       total: item.total_amount,
     }));
 
+  // получение индексов с сервера
   const getIndexes = async () => {
     if (!sellers || !customers) {
       [sellers, customers] = await Promise.all([
@@ -26,6 +28,7 @@ export function initData(sourceData) {
     return { sellers, customers };
   };
 
+  // получение записей с сервера с кешированием
   const getRecords = async (query, isUpdated = false) => {
     const qs = new URLSearchParams(query);
     const nextQuery = qs.toString();

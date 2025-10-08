@@ -1,6 +1,8 @@
 import "./fonts/ys-display/fonts.css";
 import "./style.css";
 
+import { data as sourceData } from "./data/dataset_1.js";
+
 import { initData } from "./data.js";
 import { processFormData } from "./lib/utils.js";
 
@@ -10,84 +12,94 @@ import { initFiltering } from "./components/filtering.js";
 import { initSorting } from "./components/sorting.js";
 import { initSearching } from "./components/searching.js";
 
-const sourceData = await import("./data/dataset_1.js");
-const api = initData(sourceData);
-
-// Инициализация таблицы
-const {
-  container,
-  elements,
-  render: tableRender,
-} = initTable(
+// Создаие таблицы
+const sampleTable = initTable(
   {
     tableTemplate: "table",
     rowTemplate: "row",
     before: ["header"],
     after: ["pagination"],
   },
-  async (action) => {
-    await mainRender(action);
-  }
+  render
 );
 
-// Инициализация компонентов
+// Добавляем таблицу в DOM
+const appRoot = document.querySelector("#app");
+appRoot.appendChild(sampleTable.container);
+
+// Инициализация API
+const api = initData(sourceData);
+
+//Пагинация — передаём DOM-элемент sampleTable.pagination
 const { applyPagination, updatePagination } = initPagination(
-  {
-    pages: elements.pages,
-    fromRow: elements.pages.querySelector(".from"),
-    toRow: elements.pages.querySelector(".to"),
-    totalRows: elements.pages.querySelector(".total"),
-  },
+  sampleTable.pagination,
   (el, page, isCurrent) => {
-    el.querySelector("input").value = page;
-    el.querySelector("input").checked = isCurrent;
-    el.querySelector("span").textContent = page;
+    const input = el.querySelector("input");
+    const label = el.querySelector("span");
+    input.value = page;
+    input.checked = isCurrent;
+    label.textContent = page;
     return el;
   }
 );
 
-const { updateIndexes } = await (async () => {
-  const indexes = await api.getIndexes();
-  return initFiltering(elements.filter, {
-    searchBySeller: indexes.sellers,
-  });
-})();
+//Фильтрация
+const { applyFiltering, updateIndexes } = initFiltering(
+  sampleTable.filter // передаём DOM-элемент формы фильтрации
+);
 
-const { applySorting } = initSorting([
-  elements.header.querySelector("[data-field='date']"),
-  elements.header.querySelector("[data-field='total']"),
+//Сортировка
+const applySorting = initSorting([
+  sampleTable.header.sortByDate,
+  sampleTable.header.sortByTotal,
 ]);
 
-const { applySearching } = initSearching("search");
+//Поиск
+const searchFieldName = "search";
+const applySearching = initSearching(searchFieldName);
 
-async function init() {
-  const indexes = await api.getIndexes();
-  updateIndexes(elements.filter, {
-    searchBySeller: indexes.sellers,
-  });
-  await mainRender(); // вызываем нашу новую функцию рендера
-}
-
-async function mainRender(action) {
-  const state = processFormData(new FormData(container));
+// --- Основная функция отрисовки таблицы ---
+async function render(action) {
+  const state = collectState();
   let query = {};
 
-  // Пагинация
-  query = applyPagination(query, state, action);
-  // Фильтр
-  query = initFiltering(elements.filter, {}).applyFiltering(
-    query,
-    state,
-    action
-  );
-  // Сортировка
-  query = applySorting ? applySorting(query, state, action) : query;
-  // Поиск
+  query = applyFiltering(query, state, action);
   query = applySearching(query, state, action);
+  query = applySorting(query, state, action);
+  query = applyPagination(query, state, action);
 
   const { total, items } = await api.getRecords(query);
+
   updatePagination(total, query);
-  tableRender(items);
+  sampleTable.render(items);
 }
 
+// --- Сбор состояния формы ---
+function collectState() {
+  const state = processFormData(new FormData(sampleTable.container));
+
+  const rowsPerPage = parseInt(state.rowsPerPage);
+  const page = parseInt(state.page ?? 1);
+
+  return {
+    ...state,
+    rowsPerPage,
+    page,
+  };
+}
+
+// --- Инициализация приложения ---
+async function init() {
+  const indexes = await api.getIndexes();
+
+  // Обновляем селекты в фильтре
+  updateIndexes(sampleTable.filter, {
+    searchBySeller: indexes.sellers,
+  });
+
+  // Отрисовка таблицы с сервера
+  await render();
+}
+
+// Запуск
 init();
