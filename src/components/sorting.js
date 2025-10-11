@@ -1,17 +1,21 @@
-import { sortMap } from "../lib/sort.js";
-
 export function initSorting(columns) {
   return (query, state, action) => {
     let field = null;
     let order = null;
 
     if (action && action.name === "sort") {
-      action.dataset.value = sortMap[action.dataset.value];
+      const sortDirections = {
+        none: 'asc',
+        asc: 'desc',
+        desc: 'none'
+      };
+
+      action.dataset.value = sortDirections[action.dataset.value];
       field = action.dataset.field;
       order = action.dataset.value;
 
       columns.forEach((column) => {
-        if (column.dataset.field !== action.dataset.field) {
+        if (column !== action) {
           column.dataset.value = "none";
         }
       });
@@ -29,3 +33,4 @@ export function initSorting(columns) {
     return sort ? Object.assign({}, query, { sort }) : query;
   };
 }
+

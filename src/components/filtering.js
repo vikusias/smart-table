@@ -1,14 +1,17 @@
-export function initFiltering(elements) {
+export function initFiltering(filterElements) {
   const updateIndexes = (elements, indexes) => {
     Object.keys(indexes).forEach((elementName) => {
-      elements[elementName].append(
-        ...Object.values(indexes[elementName]).map((name) => {
-          const el = document.createElement("option");
-          el.textContent = name;
-          el.value = name;
-          return el;
-        })
-      );
+      const selectElement = elements[elementName];
+      if (selectElement) {
+        selectElement.append(
+          ...Object.values(indexes[elementName]).map((name) => {
+            const el = document.createElement("option");
+            el.textContent = name;
+            el.value = name;
+            return el;
+          })
+        );
+      }
     });
   };
 
@@ -16,20 +19,20 @@ export function initFiltering(elements) {
     if (action && action.name === "clear") {
       const parent = action.target.closest("button");
       const fieldName = parent.dataset.field;
-      if (fieldName && elements[fieldName]) {
-        elements[fieldName].value = "";
+      if (fieldName && filterElements[fieldName]) {
+        filterElements[fieldName].value = "";
       }
     }
 
     const filter = {};
-    Object.keys(elements).forEach((key) => {
-      if (elements[key]) {
-        if (
-          ["INPUT", "SELECT"].includes(elements[key].tagName) &&
-          elements[key].value
-        ) {
-          filter[`filter[${elements[key].name}]`] = elements[key].value;
-        }
+    Object.keys(filterElements).forEach((key) => {
+      const element = filterElements[key];
+      if (
+        element &&
+        ["INPUT", "SELECT"].includes(element.tagName) &&
+        element.value
+      ) {
+        filter[`filter[${element.name}]`] = element.value;
       }
     });
 

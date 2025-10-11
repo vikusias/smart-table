@@ -12,25 +12,25 @@ import { initFiltering } from "./components/filtering.js";
 import { initSorting } from "./components/sorting.js";
 import { initSearching } from "./components/searching.js";
 
-// Создаие таблицы
+// Инициализация таблицы
 const sampleTable = initTable(
   {
     tableTemplate: "table",
     rowTemplate: "row",
-    before: ["header"],
+    before: ["header", "search", "filter"],
     after: ["pagination"],
   },
-  render
+  render // функция рендера, определенная ниже
 );
 
-// Добавляем таблицу в DOM
+// добавляем таблицу в DOM
 const appRoot = document.querySelector("#app");
 appRoot.appendChild(sampleTable.container);
 
-// Инициализация API
+// Инициализация API с исходными данными
 const api = initData(sourceData);
 
-//Пагинация — передаём DOM-элемент sampleTable.pagination
+// Инициализация элементов управления
 const { applyPagination, updatePagination } = initPagination(
   sampleTable.pagination,
   (el, page, isCurrent) => {
@@ -43,43 +43,48 @@ const { applyPagination, updatePagination } = initPagination(
   }
 );
 
-//Фильтрация
 const { applyFiltering, updateIndexes } = initFiltering(
-  sampleTable.filter // передаём DOM-элемент формы фильтрации
+  sampleTable.filter.elements
 );
 
-//Сортировка
 const applySorting = initSorting([
   sampleTable.header.sortByDate,
   sampleTable.header.sortByTotal,
 ]);
 
-//Поиск
 const searchFieldName = "search";
 const applySearching = initSearching(searchFieldName);
 
-// --- Основная функция отрисовки таблицы ---
-async function render(action) {
-  const state = collectState();
-  let query = {};
+// Основная функция отрисовки таблицы
+async function render(action = {}) {
+  try {
+    const state = collectState();
 
-  query = applyFiltering(query, state, action);
-  query = applySearching(query, state, action);
-  query = applySorting(query, state, action);
-  query = applyPagination(query, state, action);
+    // Формируем запрос с учетом фильтров, поиска, сортировки и пагинации
+    let query = {};
+    query = applyFiltering(query, state, action);
+    query = applySearching(query, state, action);
+    query = applySorting(query, state, action);
+    query = applyPagination(query, state, action);
 
-  const { total, items } = await api.getRecords(query);
+    // Получение данных с сервера
+    const { total, items } = await api.getRecords(query);
 
-  updatePagination(total, query);
-  sampleTable.render(items);
+    // Обновляем пагинацию и таблицу
+    updatePagination(total, query);
+    sampleTable.render(items);
+  } catch (error) {
+    console.error("Ошибка при рендеринге таблицы:", error);
+  }
 }
 
-// --- Сбор состояния формы ---
+// Функция сбора состояния формы
 function collectState() {
-  const state = processFormData(new FormData(sampleTable.container));
+  const formData = new FormData(sampleTable.container);
+  const state = processFormData(formData);
 
-  const rowsPerPage = parseInt(state.rowsPerPage);
-  const page = parseInt(state.page ?? 1);
+  const rowsPerPage = parseInt(state.rowsPerPage || "10", 10);
+  const page = parseInt(state.page ?? "1", 10);
 
   return {
     ...state,
@@ -88,17 +93,19 @@ function collectState() {
   };
 }
 
-// --- Инициализация приложения ---
+// Инициализация приложения
 async function init() {
-  const indexes = await api.getIndexes();
-
-  // Обновляем селекты в фильтре
-  updateIndexes(sampleTable.filter, {
-    searchBySeller: indexes.sellers,
-  });
-
-  // Отрисовка таблицы с сервера
-  await render();
+  try {
+    const indexes = await api.getIndexes();
+    // Обновляем селекты фильтрации
+    updateIndexes(sampleTable.filter.elements, {
+      searchBySeller: indexes.sellers,
+    });
+    // первичная отрисовка таблицы
+    await render();
+  } catch (error) {
+    console.error("Ошибка инициализации:", error);
+  }
 }
 
 // Запуск

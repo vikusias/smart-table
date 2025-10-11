@@ -1,12 +1,25 @@
 import { getPages } from "../lib/utils.js";
 
-export const initPagination = (
-  { pages, fromRow, toRow, totalRows },
-  createPage
-) => {
-  const pagesContainer = pages;
-  const pageTemplate = pages.firstElementChild.cloneNode(true);
-  pages.innerHTML = "";
+export const initPagination = (pagesContainer, createPage) => {
+  if (!pagesContainer) {
+    console.error("Pagination container not found.");
+    return {
+      applyPagination: () => ({}),
+      updatePagination: () => {},
+    };
+  }
+
+  const pageTemplate = pagesContainer.querySelector("template")?.content.firstElementChild.cloneNode(true);
+  
+  if (!pageTemplate) {
+    console.error("Pagination template not found.");
+    return {
+      applyPagination: () => ({}),
+      updatePagination: () => {},
+    };
+  }
+
+  pagesContainer.innerHTML = "";
 
   let pageCount;
 
@@ -40,17 +53,28 @@ export const initPagination = (
   const updatePagination = (total, { page, limit }) => {
     pageCount = Math.ceil(total / limit);
 
-    const visiblePages = getPages(page, pageCount, 5);
-    pagesContainer.replaceChildren(
-      ...visiblePages.map((pageNumber) => {
-        const el = pageTemplate.cloneNode(true);
-        return createPage(el, pageNumber, pageNumber === page);
-      })
-    );
+    if (pageCount === 0) pageCount = 1;
 
-    fromRow.textContent = (page - 1) * limit + 1;
-    toRow.textContent = Math.min(page * limit, total);
-    totalRows.textContent = total;
+    const visiblePages = getPages(page, pageCount, 5);
+    
+    const pagesElement = pagesContainer.querySelector('[data-name="pages"]');
+    
+    if (pagesElement) {
+      pagesElement.replaceChildren(
+        ...visiblePages.map((pageNumber) => {
+          const el = pageTemplate.cloneNode(true);
+          return createPage(el, pageNumber, pageNumber === page);
+        })
+      );
+    }
+
+    const fromRow = document.querySelector("#fromRow");
+    const toRow = document.querySelector("#toRow");
+    const totalRows = document.querySelector("#totalRows");
+
+    if (fromRow) fromRow.textContent = (page - 1) * limit + 1;
+    if (toRow) toRow.textContent = Math.min(page * limit, total);
+    if (totalRows) totalRows.textContent = total;
   };
 
   return {
