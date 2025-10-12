@@ -1,14 +1,11 @@
 import { cloneTemplate } from "../lib/utils.js";
 
-
 export function initTable(settings, onAction) {
   const { tableTemplate, rowTemplate, before, after } = settings;
   const root = cloneTemplate(tableTemplate);
 
-
   const beforeIds = before || [];
   const afterIds = after || [];
-
 
   beforeIds
     .slice()
@@ -19,13 +16,11 @@ export function initTable(settings, onAction) {
       root.container.prepend(clone.container);
     });
 
-
   afterIds.forEach((id) => {
     const clone = cloneTemplate(id);
     root[id] = clone;
     root.container.append(clone.container);
   });
-
 
   root.container.addEventListener("change", () => {
     onAction();
@@ -39,7 +34,6 @@ export function initTable(settings, onAction) {
     e.preventDefault();
     onAction(e.submitter);
   });
-
 
   const render = (data) => {
     const nextRows = data.map((item) => {
@@ -63,4 +57,3 @@ export function initTable(settings, onAction) {
 
   return { ...root, render };
 }
-

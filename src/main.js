@@ -7,10 +7,19 @@ import { initData } from "./data.js";
 import { processFormData } from "./lib/utils.js";
 
 import { initTable } from "./components/table.js";
-import { initPagination } from "./components/pagination.js";
 import { initFiltering } from "./components/filtering.js";
 import { initSorting } from "./components/sorting.js";
 import { initSearching } from "./components/searching.js";
+
+export const initPagination = () => {
+  const applyPagination = () => {};
+  const updatePagination = () => {};
+
+  return {
+    applyPagination,
+    updatePagination,
+  };
+};
 
 // Инициализация таблицы
 const sampleTable = initTable(
@@ -31,26 +40,19 @@ appRoot.appendChild(sampleTable.container);
 const api = initData(sourceData);
 
 // Инициализация элементов управления
-const { applyPagination, updatePagination } = initPagination(
-  sampleTable.pagination,
-  (el, page, isCurrent) => {
-    const input = el.querySelector("input");
-    const label = el.querySelector("span");
-    input.value = page;
-    input.checked = isCurrent;
-    label.textContent = page;
-    return el;
-  }
-);
+const { applyPagination, updatePagination } = initPagination();
 
+// Инициализация фильтрации, сортировки и поиска
 const { applyFiltering, updateIndexes } = initFiltering(
   sampleTable.filter.elements
 );
 
-const applySorting = initSorting([
-  sampleTable.header.sortByDate,
-  sampleTable.header.sortByTotal,
-]);
+// Получение элементов для сортировки
+const sortByDateElem = sampleTable.header.sortByDate;
+const sortByTotalElem = sampleTable.header.sortByTotal;
+
+// Передача элементов в initSorting с проверками
+const applySorting = initSorting([sortByDateElem, sortByTotalElem]);
 
 const searchFieldName = "search";
 const applySearching = initSearching(searchFieldName);

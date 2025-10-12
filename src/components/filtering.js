@@ -3,6 +3,7 @@ export function initFiltering(filterElements) {
     Object.keys(indexes).forEach((elementName) => {
       const selectElement = elements[elementName];
       if (selectElement) {
+        selectElement.innerHTML = ""; // очистка старых опций
         selectElement.append(
           ...Object.values(indexes[elementName]).map((name) => {
             const el = document.createElement("option");
@@ -17,10 +18,15 @@ export function initFiltering(filterElements) {
 
   const applyFiltering = (query, state, action) => {
     if (action && action.name === "clear") {
-      const parent = action.target.closest("button");
-      const fieldName = parent.dataset.field;
-      if (fieldName && filterElements[fieldName]) {
-        filterElements[fieldName].value = "";
+      if (action.target) {
+        const parent = action.target.closest("button");
+        if (
+          parent &&
+          parent.dataset.field &&
+          filterElements[parent.dataset.field]
+        ) {
+          filterElements[parent.dataset.field].value = "";
+        }
       }
     }
 

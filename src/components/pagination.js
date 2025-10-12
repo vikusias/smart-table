@@ -9,8 +9,9 @@ export const initPagination = (pagesContainer, createPage) => {
     };
   }
 
-  const pageTemplate = pagesContainer.querySelector("template")?.content.firstElementChild.cloneNode(true);
-  
+  const pageTemplate = pagesContainer
+    .querySelector("template")
+    ?.content.firstElementChild.cloneNode(true);
   if (!pageTemplate) {
     console.error("Pagination template not found.");
     return {
@@ -20,7 +21,6 @@ export const initPagination = (pagesContainer, createPage) => {
   }
 
   pagesContainer.innerHTML = "";
-
   let pageCount;
 
   const applyPagination = (query, state, action) => {
@@ -52,13 +52,11 @@ export const initPagination = (pagesContainer, createPage) => {
 
   const updatePagination = (total, { page, limit }) => {
     pageCount = Math.ceil(total / limit);
-
     if (pageCount === 0) pageCount = 1;
 
     const visiblePages = getPages(page, pageCount, 5);
-    
     const pagesElement = pagesContainer.querySelector('[data-name="pages"]');
-    
+
     if (pagesElement) {
       pagesElement.replaceChildren(
         ...visiblePages.map((pageNumber) => {
