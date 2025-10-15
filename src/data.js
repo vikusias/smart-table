@@ -1,19 +1,24 @@
 const BASE_URL = "https://webinars.webdev.education-services.ru/sp7-api";
 
-export function initData(sourceData) {
+// Функция инициализации данных
+export function initData() {
   let sellers;
   let customers;
   let lastResult;
   let lastQuery;
 
-  const mapRecords = (data) =>
-    data.map((item) => ({
-      id: item.receipt_id,
-      date: item.date,
-      seller: sellers ? sellers[item.seller_id] : null,
-      customer: customers ? customers[item.customer_id] : null,
-      total: item.total_amount,
-    }));
+  // функция для приведения строк
+  const mapRecords = (data) => {
+    return data.map((item) => {
+      return {
+        id: item.receipt_id,
+        date: item.date,
+        seller: sellers[item.seller_id],
+        customer: customers[item.customer_id],
+        total: item.total_amount,
+      };
+    });
+  };
 
   const getIndexes = async () => {
     if (!sellers || !customers) {
@@ -22,11 +27,14 @@ export function initData(sourceData) {
         fetch(`${BASE_URL}/customers`).then((res) => res.json()),
       ]);
     }
+
     return { sellers, customers };
   };
 
+  
   const getRecords = async (query, isUpdated = false) => {
     const qs = new URLSearchParams(query);
+
     const nextQuery = qs.toString();
 
     if (lastQuery === nextQuery && !isUpdated) {

@@ -1,31 +1,21 @@
 import { getPages } from "../lib/utils.js";
 
-export const initPagination = (pagesContainer, createPage) => {
-  if (!pagesContainer) {
-    console.error("Pagination container not found.");
-    return {
-      applyPagination: () => ({}),
-      updatePagination: () => {},
-    };
-  }
+export const initPagination = (
+  { pages, fromRow, toRow, totalRows },
+  createPage
+) => {
+  // @todo: #2.3 — подготовить шаблон кнопки для страницы и очистить контейнер
 
-  const pageTemplate = pagesContainer
-    .querySelector("template")
-    ?.content.firstElementChild.cloneNode(true);
-  if (!pageTemplate) {
-    console.error("Pagination template not found.");
-    return {
-      applyPagination: () => ({}),
-      updatePagination: () => {},
-    };
-  }
+  const pageTemplate = pages.firstElementChild.cloneNode(true);
+  pages.firstElementChild.remove();
 
-  pagesContainer.innerHTML = "";
   let pageCount;
 
   const applyPagination = (query, state, action) => {
     const limit = state.rowsPerPage;
     let page = state.page;
+
+    // @todo: #2.6 — обработать действия
 
     if (action) {
       switch (action.name) {
@@ -52,27 +42,23 @@ export const initPagination = (pagesContainer, createPage) => {
 
   const updatePagination = (total, { page, limit }) => {
     pageCount = Math.ceil(total / limit);
-    if (pageCount === 0) pageCount = 1;
+
+    // @todo: #2.4 — получить список видимых страниц и вывести их
 
     const visiblePages = getPages(page, pageCount, 5);
-    const pagesElement = pagesContainer.querySelector('[data-name="pages"]');
+    pages.replaceChildren(
+      ...visiblePages.map((pageNumber) => {
+        const el = pageTemplate.cloneNode(true);
 
-    if (pagesElement) {
-      pagesElement.replaceChildren(
-        ...visiblePages.map((pageNumber) => {
-          const el = pageTemplate.cloneNode(true);
-          return createPage(el, pageNumber, pageNumber === page);
-        })
-      );
-    }
+        return createPage(el, pageNumber, pageNumber === page);
+      })
+    );
 
-    const fromRow = document.querySelector("#fromRow");
-    const toRow = document.querySelector("#toRow");
-    const totalRows = document.querySelector("#totalRows");
+    // @todo: #2.5 — обновить статус пагинации
 
-    if (fromRow) fromRow.textContent = (page - 1) * limit + 1;
-    if (toRow) toRow.textContent = Math.min(page * limit, total);
-    if (totalRows) totalRows.textContent = total;
+    fromRow.textContent = (page - 1) * limit + 1;
+    toRow.textContent = Math.min(page * limit, total);
+    totalRows.textContent = total;
   };
 
   return {

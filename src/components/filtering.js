@@ -1,44 +1,41 @@
-export function initFiltering(filterElements) {
+export function initFiltering(elements) {
   const updateIndexes = (elements, indexes) => {
     Object.keys(indexes).forEach((elementName) => {
-      const selectElement = elements[elementName];
-      if (selectElement) {
-        selectElement.innerHTML = ""; // очистка старых опций
-        selectElement.append(
-          ...Object.values(indexes[elementName]).map((name) => {
-            const el = document.createElement("option");
-            el.textContent = name;
-            el.value = name;
-            return el;
-          })
-        );
-      }
+      elements[elementName].append(
+        ...Object.values(indexes[elementName]).map((name) => {
+          const optionElem = document.createElement("option");
+          optionElem.value = name;
+          optionElem.textContent = name;
+
+          return optionElem;
+        })
+      );
     });
   };
 
   const applyFiltering = (query, state, action) => {
+    // @todo: #4.2 — обработать очистку поля
+
     if (action && action.name === "clear") {
-      if (action.target) {
-        const parent = action.target.closest("button");
-        if (
-          parent &&
-          parent.dataset.field &&
-          filterElements[parent.dataset.field]
-        ) {
-          filterElements[parent.dataset.field].value = "";
-        }
-      }
+      const parent = action.parentElement;
+      const inputElem = parent.querySelector("input");
+      const field = action.dataset.field;
+
+      inputElem.value = "";
+      state[field] = "";
     }
 
+    // @todo: #4.5 — отфильтровать данные используя компаратор
+
     const filter = {};
-    Object.keys(filterElements).forEach((key) => {
-      const element = filterElements[key];
-      if (
-        element &&
-        ["INPUT", "SELECT"].includes(element.tagName) &&
-        element.value
-      ) {
-        filter[`filter[${element.name}]`] = element.value;
+    Object.keys(elements).forEach((key) => {
+      if (elements[key]) {
+        if (
+          ["INPUT", "SELECT"].includes(elements[key].tagName) &&
+          elements[key].value
+        ) {
+          filter[`filter[${elements[key].name}]`] = elements[key].value;
+        }
       }
     });
 
