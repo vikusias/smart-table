@@ -4,8 +4,7 @@ export const initPagination = (
   { pages, fromRow, toRow, totalRows },
   createPage
 ) => {
-  // @todo: #2.3 — подготовить шаблон кнопки для страницы и очистить контейнер
-
+  
   const pageTemplate = pages.firstElementChild.cloneNode(true);
   pages.firstElementChild.remove();
 
@@ -15,7 +14,6 @@ export const initPagination = (
     const limit = state.rowsPerPage;
     let page = state.page;
 
-    // @todo: #2.6 — обработать действия
 
     if (action) {
       switch (action.name) {
@@ -43,7 +41,6 @@ export const initPagination = (
   const updatePagination = (total, { page, limit }) => {
     pageCount = Math.ceil(total / limit);
 
-    // @todo: #2.4 — получить список видимых страниц и вывести их
 
     const visiblePages = getPages(page, pageCount, 5);
     pages.replaceChildren(
@@ -54,7 +51,6 @@ export const initPagination = (
       })
     );
 
-    // @todo: #2.5 — обновить статус пагинации
 
     fromRow.textContent = (page - 1) * limit + 1;
     toRow.textContent = Math.min(page * limit, total);

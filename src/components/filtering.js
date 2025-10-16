@@ -14,8 +14,6 @@ export function initFiltering(elements) {
   };
 
   const applyFiltering = (query, state, action) => {
-    // @todo: #4.2 — обработать очистку поля
-
     if (action && action.name === "clear") {
       const parent = action.parentElement;
       const inputElem = parent.querySelector("input");
@@ -24,8 +22,7 @@ export function initFiltering(elements) {
       inputElem.value = "";
       state[field] = "";
     }
-
-    // @todo: #4.5 — отфильтровать данные используя компаратор
+    
 
     const filter = {};
     Object.keys(elements).forEach((key) => {
